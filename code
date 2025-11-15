@@ -1,0 +1,24 @@
+import pandas as pd
+import numpy as np
+from scipy.optimize import least_squares
+
+df = pd.read_csv('data.csv')
+t = np.linspace(6,60,len(df))
+x_obs=df['x'].values
+y_obs=df['y'].values
+
+def model(params,t):
+    theta,M,X=params
+    return (
+        t*np.cos(theta) - np.exp(M*np.abs(t))*np.sin(0.3*t)*np.sin(theta) + X,
+        42 + t*np.sin(theta) + np.exp(M*np.abs(t))*np.sin(0.3*t)*np.cos(theta)
+    )
+
+def residuals(params):
+    xp,yp=model(params,t)
+    return np.concatenate([xp-x_obs,yp-y_obs])
+
+bounds=([0,-0.05,0],[np.deg2rad(50),0.05,100])
+
+res=least_squares(residuals,[0.4,0,50],bounds=bounds,max_nfev=50000)
+res.x
